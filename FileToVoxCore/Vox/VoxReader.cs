@@ -17,17 +17,24 @@ namespace FileToVoxCore.Vox
 
         public virtual VoxModel LoadModel(string absolutePath, bool writeLog = false, bool debug = false, bool offsetPalette = true)
         {
+            LogOutputFile = Path.GetFileNameWithoutExtension(absolutePath) + "-" + DateTime.Now.ToString("y-MM-d_HH.m.s") + ".txt";
+            return LoadModel(
+                input: new MemoryStream(File.ReadAllBytes(absolutePath)),
+                writeLog: writeLog,
+                debug: debug,
+                offsetPalette: offsetPalette);
+        }
+        public virtual VoxModel LoadModel(Stream input, bool writeLog = false, bool debug = false, bool offsetPalette = true)
+        {
             VoxModel output = new VoxModel();
-            var name = Path.GetFileNameWithoutExtension(absolutePath);
             VoxelCountLastXyziChunk = 0;
-            LogOutputFile = name + "-" + DateTime.Now.ToString("y-MM-d_HH.m.s") + ".txt";
             WriteLog = writeLog;
             OffsetPalette = offsetPalette;
             ChildCount = 0;
             ChunkCount = 0;
-            using (var reader = new BinaryReader(new MemoryStream(File.ReadAllBytes(absolutePath))))
+            using (BinaryReader reader = new BinaryReader(input))
             {
-                var head = new string(reader.ReadChars(4));
+                string head = new string(reader.ReadChars(4));
                 if (!head.Equals(HEADER))
                 {
                     Console.WriteLine("Not a Magicavoxel file! " + output);
